@@ -4,12 +4,32 @@ import runWithFPS from "run-with-fps";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-const img = new Image();
-const texture = new THREE.Texture(img);
-img.addEventListener("load", () => {
-  // texture.needsUpdate = true;
-});
-img.src = require("./textures/door/color.jpg");
+const loadingManager = new THREE.LoadingManager();
+const textureLoader = new THREE.TextureLoader(loadingManager);
+// const colorTexture = textureLoader.load(require("./textures/door/color.jpg"))
+const colorTexture = textureLoader.load(require("./textures/minecraft.png"))
+// const alphaTexture = textureLoader.load(require("./textures/door/alpha.jpg"))
+// const heightTexture = textureLoader.load(require("./textures/door/height.jpg"))
+// const normalTexture = textureLoader.load(require("./textures/door/normal.jpg"))
+// const metalnessTexture = textureLoader.load(require("./textures/door/metalness.jpg"))
+// const roughnessTexture = textureLoader.load(require("./textures/door/roughness.jpg"))
+// const ambientOcclusionTexture = textureLoader.load(require("./textures/door/ambientOcclusion.jpg"))
+
+// loadingManager.onProgress = ((_, loaded, total) => {
+//   console.log({ loaded, total });
+// });
+
+// loadingManager.onLoad = () => {
+//   console.log('load is done');
+// }
+
+// colorTexture.rotation = Math.PI / 4;
+// colorTexture.center.x = 0.5;
+// colorTexture.center.y = 0.5;
+
+colorTexture.generateMipmaps = false;
+colorTexture.minFilter = THREE.NearestFilter;
+colorTexture.magFilter = THREE.NearestFilter;
 
 const size = {
   width: window.innerWidth,
@@ -21,9 +41,12 @@ const scene = new THREE.Scene();
 const group = new THREE.Group();
 scene.add(group);
 
+const geometry = new THREE.BoxBufferGeometry(1, 1, 1);
+
+console.log(geometry.attributes.uv)
 const box2 = new THREE.Mesh(
-  new THREE.BoxBufferGeometry(1, 1, 1),
-  new THREE.MeshBasicMaterial({ map: texture })
+  geometry,
+  new THREE.MeshBasicMaterial({ map: colorTexture })
 );
 group.add(box2);
 box2.position.set(1.5, 0, 0);
