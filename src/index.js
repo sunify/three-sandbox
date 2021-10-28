@@ -2,11 +2,21 @@ import './styles.css';
 
 import runWithFPS from 'run-with-fps';
 import * as THREE from 'three';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
+window.THREE = THREE;
+
 const loadingManager = new THREE.LoadingManager();
+const fontLoader = new FontLoader(loadingManager);
 const textureLoader = new THREE.TextureLoader(loadingManager);
 const cubeTextureLoader = new THREE.CubeTextureLoader(loadingManager);
+
+const font = fontLoader.parse(
+  require('three/examples/fonts/helvetiker_regular.typeface.json')
+);
+console.log(font);
 
 const doorColorTexture = textureLoader.load(
   require('./textures/door/color.jpg')
@@ -39,7 +49,8 @@ const envTexture = cubeTextureLoader.load([
   require('./textures/environmentMaps/1/nz.jpg'),
 ]);
 
-const matcapTexture = textureLoader.load(require('./textures/matcaps/3.png'));
+const matcapTexture = textureLoader.load(require('./textures/matcaps/5.png'));
+const matcapTexture2 = textureLoader.load(require('./textures/matcaps/8.png'));
 const gradientTexture = textureLoader.load(
   require('./textures/gradients/3.jpg')
 );
@@ -51,67 +62,48 @@ const size = {
 
 const scene = new THREE.Scene();
 
-// const material = new THREE.MeshBasicMaterial({ map: doorColorTexture, alphaMap: doorAlphaTexture, transparent: true });
-// material.side = THREE.DoubleSide;
-
-// const material = new THREE.MeshNormalMaterial({ flatShading: true });
-
-// const material = new THREE.MeshMatcapMaterial({
-//   matcap: matcapTexture
-// });
-
-// const material = new THREE.MeshDepthMaterial();
-// const material = new THREE.MeshPhongMaterial({ color: 0xffffcc, shininess: 1000, specular: 0xffffee });
-gradientTexture.minFilter = THREE.NearestFilter;
-gradientTexture.magFilter = THREE.NearestFilter;
-gradientTexture.generateMipmaps = false;
-// const material = new THREE.MeshToonMaterial({ gradientMap: gradientTexture });
-
-const material = new THREE.MeshStandardMaterial({
-  // map: doorColorTexture,
-  // metalnessMap: doorMetalTexture,
-  // roughnessMap: doorRoughnessTexture,
-  // aoMap: doorAmbTexture,
-  // displacementMap: doorHeightTexture,
-  // displacementScale: 0.08,
-  // normalMap: doorNormalTexture,
-  // alphaMap: doorAlphaTexture,
-  transparent: true,
-  metalness: 1,
-  roughness: 0.1,
-  envMap: envTexture,
-  envMapIntensity: 1
+const material = new THREE.MeshMatcapMaterial({
+  matcap: matcapTexture,
 });
 
-const ambLight = new THREE.AmbientLight(0xffccff, 0.4);
-scene.add(ambLight);
+const material2 = new THREE.MeshMatcapMaterial({
+  matcap: matcapTexture2,
+});
 
-const ptLight = new THREE.PointLight(0xcc00ff, 0.5);
-ptLight.position.x = 2;
-ptLight.position.y = 3;
-ptLight.position.z = 4;
-scene.add(ptLight);
+// const material = new THREE.MeshStandardMaterial({
+//   transparent: true,
+//   metalness: 1,
+//   roughness: 0.1,
+//   envMap: envTexture,
+//   envMapIntensity: 1,
+//   // wireframe: true
+// });
 
-const sphere = new THREE.Mesh(new THREE.SphereGeometry(1, 30, 30), material);
+// const ambLight = new THREE.AmbientLight(0xffccff, 0.4);
+// scene.add(ambLight);
 
-const plane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1, 100, 100), material);
-plane.position.x = -2;
-plane.geometry.setAttribute(
-  'uv2',
-  new THREE.BufferAttribute(plane.geometry.attributes.uv.array, 2)
-);
-sphere.geometry.setAttribute(
-  'uv2',
-  new THREE.BufferAttribute(sphere.geometry.attributes.uv.array, 2)
-);
+// const ptLight = new THREE.PointLight(0xcc00ff, 0.5);
+// ptLight.position.x = 2;
+// ptLight.position.y = 3;
+// ptLight.position.z = 4;
+// scene.add(ptLight);
 
-const torus = new THREE.Mesh(
-  new THREE.TorusGeometry(0.5, 0.2, 20, 50),
-  material
-);
-torus.position.x = 2;
+const geometry = new TextGeometry('S U N I F Y', {
+  font,
+  size: 0.5,
+  height: 0.4,
+  bevelEnabled: true,
+  bevelSize: 0.03,
+  bevelThickness: 0.02,
+  curveSegments: 5,
+  bevelOffset: 0.01,
+  bevelSegments: 4,
+});
+geometry.center();
+geometry.computeBoundingBox();
 
-scene.add(torus, plane, sphere);
+const text = new THREE.Mesh(geometry, material);
+scene.add(text);
 
 const cam = new THREE.PerspectiveCamera(
   60,
@@ -121,10 +113,25 @@ const cam = new THREE.PerspectiveCamera(
 );
 scene.add(cam);
 
-cam.position.z = 6;
+cam.position.z = 3;
 
-const aHelper = new THREE.AxesHelper();
-scene.add(aHelper);
+// const aHelper = new THREE.AxesHelper();
+// scene.add(aHelper);
+
+console.time('geo');
+const donutGeom = new THREE.TorusGeometry(0.3, 0.2, 20, 45);
+for (let i = 0; i < 100; i += 1) {
+  const donut = new THREE.Mesh(donutGeom, material2);
+  donut.position.x = (Math.min(1, Math.random() + 0.05) - 0.5) * 5;
+  donut.position.y = (Math.min(1, Math.random() + 0.05) - 0.5) * 5;
+  donut.position.z = (Math.min(1, Math.random() + 0.05) - 0.5) * 5;
+  donut.rotation.x = Math.PI * 2 * Math.random();
+  donut.rotation.y = Math.PI * 2 * Math.random();
+  donut.rotation.z = Math.PI * 2 * Math.random();
+  donut.scale.multiplyScalar(Math.random() - 0.5);
+  scene.add(donut);
+}
+console.timeEnd('geo');
 
 const canvas = document.getElementById('scene');
 const renderer = new THREE.WebGLRenderer({
@@ -143,10 +150,6 @@ runWithFPS((delta) => {
   // cam.lookAt(group.position);
 
   const t = clock.getElapsedTime();
-  sphere.rotation.x = -0.2 * t;
-  sphere.rotation.y = 0.1 * t;
-  torus.rotation.x = 0.2 * t;
-  torus.rotation.y = 0.1 * t;
   // plane.rotation.x = -0.2 * t;
   // plane.rotation.y = 0.1 * t;
 
